@@ -1,0 +1,10 @@
+scapy
+flask
+pymysql
+flask-cors
+pandas
+scikit-learn
+joblib
+numpy
+matplotlib
+requests

@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MNIDS - Traffic Analysis</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #a855f7;
+            --bg: #030712;
+            --card-bg: rgba(17, 24, 39, 0.6);
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --danger: #ef4444;
+            --success: #10b981;
+            --sidebar-width: 260px;
+            --border: rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            background-image:
+                radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.05) 0%, transparent 40%);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: rgba(3, 7, 18, 0.95);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--border);
+            height: 100vh;
+            position: fixed;
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            z-index: 100;
+        }
+
+        .sidebar-brand {
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .nav-menu {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            color: #94a3b8;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text);
+        }
+
+        .nav-link.active {
+            border-left: 3px solid var(--primary);
+            background: linear-gradient(to right, rgba(99, 102, 241, 0.1), transparent);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            padding: 2.5rem 4rem;
+        }
+
+        .welcome-section {
+            margin-bottom: 2.5rem;
+        }
+
+        .welcome-section h1 {
+            font-size: 2.2rem;
+            font-weight: 600;
+            margin-bottom: 0.2rem;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 0.8rem;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success);
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--success);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 1rem;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 1.2rem;
+            padding: 2rem;
+        }
+
+        .card-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .card-desc {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Upload Form */
+        .upload-input-group {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        input[type="file"] {
+            opacity: 0;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .custom-file-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .btn-run {
+            width: 100%;
+            background: linear-gradient(90deg, #4f46e5, #6366f1);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity 0.3s;
+        }
+
+        .btn-run:hover {
+            opacity: 0.9;
+        }
+
+        /* Sample Batch Grid */
+        .sample-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .sample-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 0.8rem;
+            border-radius: 0.5rem;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .sample-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Table Section */
+        .history-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 1.2rem;
+            padding: 2rem;
+        }
+
+        .history-card h2 {
+            font-size: 1.4rem;
+            margin-bottom: 2rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            text-align: left;
+            padding: 1rem;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 1.25rem 1rem;
+            font-size: 0.9rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .threat-badge {
+            width: 24px;
+            height: 24px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .threat-none {
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        .threat-detected {
+            border: 1px solid var(--danger);
+            color: var(--danger);
+        }
+
+        .score-none {
+            color: var(--danger);
+        }
+
+        .score-perfect {
+            color: var(--success);
+        }
+
+        .score-good {
+            color: #818cf8;
+        }
+
+        .btn-pdf {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 0.4rem 0.8rem;
+            border-radius: 0.4rem;
+            font-size: 0.75rem;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .btn-pdf:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .message {
+            padding: 1rem;
+            border-radius: 0.75rem;
+            margin-bottom: 2rem;
+            font-size: 0.9rem;
+        }
+
+        .success-msg {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        .error-msg {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <div class="sidebar-brand">MNIDS</div>
+        <ul class="nav-menu">
+            <li><a href="/user" class="nav-link">Monitoring</a></li>
+            <li><a href="/user/upload" class="nav-link active">Upload CSV</a></li>
+            <li><a href="/logout" class="nav-link" style="margin-top: auto; color: var(--danger);">Logout</a></li>
+        </ul>
+    </div>
+
+    <main class="main-content">
+        <div class="welcome-section">
+            <h1>Welcome back, {{ user }}</h1>
+            <p style="color: var(--text-muted);">Secure your network with ML Intelligence</p>
+            <div class="status-badge">
+                Status: <span style="margin-left: 0.3rem;">System Secure</span>
+            </div>
+        </div>
+
+        {% if success %}
+        <div class="message success-msg">{{ success }}</div>
+        {% endif %}
+        {% if error %}
+        <div class="message error-msg">{{ error }}</div>
+        {% endif %}
+
+        {% if ai_summary %}
+        <div class="card" style="margin-bottom: 2rem; border-left: 4px solid var(--primary);">
+            <h3 class="card-title" style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 1.5rem;">🤖</span> AI Security Insight
+            </h3>
+            <div style="color: var(--text-muted); line-height: 1.6; font-size: 0.95rem; white-space: pre-line;">
+                {{ ai_summary }}
+            </div>
+        </div>
+        {% endif %}
+
+        <div style="display: flex; justify-content: center; margin-bottom: 3rem;">
+            <!-- Upload Card -->
+            <div class="card" style="max-width: 600px; width: 100%;">
+                <h3 class="card-title">Upload Traffic Logs</h3>
+                <p class="card-desc">Upload a CSV file containing flow-based network features for analysis.</p>
+                <form action="/user/upload" method="POST" enctype="multipart/form-data">
+                    <div class="upload-input-group">
+                        <div class="file-input-wrapper">
+                            <span class="custom-file-label" id="file-label">Choose File No file chosen</span>
+                            <input type="file" name="file" accept=".csv" onchange="updateFileName(this)">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-run">Run ML Analysis</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Scan History Table -->
+        <div class="history-card">
+            <h2>Scan History</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Filename</th>
+                        <th>Total Flows</th>
+                        <th>Threats</th>
+                        <th>Safety Score</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="history-body">
+                    <!-- History will be loaded here -->
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        function updateFileName(input) {
+            const label = document.getElementById('file-label');
+            if (input.files && input.files[0]) {
+                label.innerText = input.files[0].name;
+                label.style.color = "#fff";
+            } else {
+                label.innerText = "Choose File No file chosen";
+                label.style.color = "var(--text-muted)";
+            }
+        }
+
+        let scanSummaries = {}; // Store summaries for safe retrieval
+
+        async function fetchHistory() {
+            try {
+                const response = await fetch('/api/user/scan_history');
+                const history = await response.json();
+                const tbody = document.getElementById('history-body');
+                tbody.innerHTML = '';
+                scanSummaries = {}; // Reset
+
+                history.forEach(item => {
+                    scanSummaries[item.id] = item;
+                    const row = document.createElement('tr');
+                    const safetyClass = item.safety_score > 90 ? 'score-perfect' : (item.safety_score > 70 ? 'score-good' : 'score-none');
+                    const threatClass = item.threats > 0 ? 'threat-detected' : 'threat-none';
+
+                    row.innerHTML = `
+                        <td>${new Date(item.timestamp).toLocaleString()}</td>
+                        <td style="font-weight: 600;">${item.filename}</td>
+                        <td>${item.total_flows}</td>
+                        <td><span class="threat-badge ${threatClass}">${item.threats}</span></td>
+                        <td class="${safetyClass}">${item.safety_score}%</td>
+                        <td>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button class="btn-pdf" onclick="showSummary(${item.id})">View AI Summary</button>
+                                <button class="btn-pdf" onclick="downloadSummaryPDF(${item.id})" style="border-color: var(--primary); color: var(--primary);">Download PDF</button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (err) { console.error("History load failed:", err); }
+        }
+
+        function showSummary(id) {
+            const summary = scanSummaries[id]?.ai_summary;
+            if (summary) {
+                alert("🤖 AI Security Summary:\n\n" + summary);
+            } else {
+                alert("Summary not found.");
+            }
+        }
+
+        async function downloadSummaryPDF(id) {
+            const item = scanSummaries[id];
+            if (!item) return;
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Set Title
+            doc.setFontSize(22);
+            doc.setTextColor(99, 102, 241); // var(--primary)
+            doc.text("ML-NIDS Security Analysis Report", 20, 30);
+
+            // Metadata Section
+            doc.setFontSize(12);
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Filename: ${item.filename}`, 20, 50);
+            doc.text(`Scan Date: ${new Date(item.timestamp).toLocaleString()}`, 20, 60);
+            doc.text(`Total Flows: ${item.total_flows}`, 20, 70);
+            doc.text(`Threats Detected: ${item.threats}`, 20, 80);
+            doc.text(`Safety Score: ${item.safety_score}%`, 20, 90);
+
+            // Divider
+            doc.setLineWidth(0.5);
+            doc.line(20, 100, 190, 100);
+
+            // AI Summary Section
+            doc.setFontSize(14);
+            doc.setFont("helvetica", "bold");
+            doc.text("AI Security Insights", 20, 115);
+
+            doc.setFontSize(11);
+            doc.setFont("helvetica", "normal");
+            const splitText = doc.splitTextToSize(item.ai_summary || "No summary available.", 170);
+            doc.text(splitText, 20, 125);
+
+            // Footer
+            doc.setFontSize(10);
+            doc.setTextColor(150, 150, 150);
+            doc.text("Generated by ML-NIDS Intelligence System", 20, 280);
+
+            doc.save(`NIDS_Security_Report_${item.id}.pdf`);
+        }
+
+        window.onload = fetchHistory;
+    </script>
+</body>
+
+</html>

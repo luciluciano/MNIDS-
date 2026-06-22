@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MNIDS - System Overview</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #a855f7;
+            --bg: #030712;
+            --card-bg: rgba(17, 24, 39, 0.7);
+            --text: #f8fafc;
+            --sidebar-width: 260px;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            background-image:
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.1) 0, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.1) 0, transparent 50%);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: rgba(3, 7, 18, 0.95);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            height: 100vh;
+            position: fixed;
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            z-index: 100;
+        }
+
+        .sidebar-brand {
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+
+        .nav-menu {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            color: #94a3b8;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--text);
+        }
+
+        .nav-link.active {
+            border-left: 3px solid var(--primary);
+            background: linear-gradient(to right, rgba(99, 102, 241, 0.1), transparent);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            padding: 2.5rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 3rem;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            color: #94a3b8;
+        }
+
+        /* Quick Stats Grid */
+        .overview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 1.5rem;
+            border-radius: 1.2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 600;
+        }
+
+        .stat-trend {
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .trend-up {
+            color: var(--success);
+        }
+
+        .trend-down {
+            color: var(--danger);
+        }
+
+        /* Status Cards */
+        .system-status-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .status-card {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .status-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .status-badge {
+            padding: 0.4rem 1rem;
+            border-radius: 2rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .service-list {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+
+        .service-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .service-info h4 {
+            font-size: 1rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .service-info p {
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+
+        .health-bar-container {
+            width: 100px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .health-bar-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 10px;
+        }
+
+        /* Chart Section */
+        .chart-card {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            margin-top: 1.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <div class="sidebar-brand">M-NIDS Admin</div>
+        <ul class="nav-menu">
+            <li><a href="/admin/overview" class="nav-link active">Overview</a></li>
+            <li><a href="/admin" class="nav-link">Dashboard</a></li>
+            <li><a href="/admin/analytics" class="nav-link">Analytics</a></li>
+            <li><a href="/admin/users" class="nav-link">User Management</a></li>
+            <li><a href="/logout" class="nav-link" style="margin-top: auto; color: var(--danger);">Logout</a></li>
+        </ul>
+    </div>
+
+    <main class="main-content">
+        <div class="container">
+            <header>
+                <h1>System Overview</h1>
+                <p>Global monitor for ML-powered network intrusion detection system.</p>
+            </header>
+
+            <div class="overview-grid">
+                <div class="stat-card">
+                    <div class="stat-label">Network Throughput</div>
+                    <div class="stat-value">12.4 GB</div>
+                    <div class="stat-trend trend-up"><span>↑ 8.2%</span> last 24h</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Model Precision</div>
+                    <div class="stat-value">94.8%</div>
+                    <div class="stat-trend trend-up"><span>↑ 1.4%</span> since retrain</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Active Sniffers</div>
+                    <div class="stat-value">4 Nodes</div>
+                    <div class="stat-badge" style="color: var(--success); font-size: 0.7rem;">Healthy</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Blocked Assets</div>
+                    <div class="stat-value">142 IPs</div>
+                    <div class="stat-trend trend-down"><span>↓ 3.1%</span> from peak</div>
+                </div>
+            </div>
+
+            <div class="system-status-container">
+                <div class="status-card">
+                    <div class="status-header">
+                        <h3>Core Services Health</h3>
+                        <div class="status-badge">Operational</div>
+                    </div>
+                    <div class="service-list">
+                        <div class="service-item">
+                            <div class="service-info">
+                                <h4>Packet Ingestion Engine</h4>
+                                <p>Processing 12k packets/sec</p>
+                            </div>
+                            <div class="health-bar-container">
+                                <div class="health-bar-fill" style="width: 98%;"></div>
+                            </div>
+                        </div>
+                        <div class="service-item">
+                            <div class="service-info">
+                                <h4>ML Inference API</h4>
+                                <p>Latency: 12ms avg</p>
+                            </div>
+                            <div class="health-bar-container">
+                                <div class="health-bar-fill" style="width: 92%; background: var(--secondary);"></div>
+                            </div>
+                        </div>
+                        <div class="service-item">
+                            <div class="service-info">
+                                <h4>MySQL Cluster</h4>
+                                <p>Active replications: 2/2</p>
+                            </div>
+                            <div class="health-bar-container">
+                                <div class="health-bar-fill" style="width: 100%; background: var(--success);"></div>
+                            </div>
+                        </div>
+                        <div class="service-item">
+                            <div class="service-info">
+                                <h4>Alert Notification Hub</h4>
+                                <p>Queue size: 0 (Empty)</p>
+                            </div>
+                            <div class="health-bar-container">
+                                <div class="health-bar-fill" style="width: 85%; background: var(--warning);"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="status-card">
+                    <h3>ML Model Status</h3>
+                    <div style="margin-top: 1.5rem; text-align: center;">
+                        <div style="font-size: 3rem; color: var(--primary);">RF-v2.1</div>
+                        <p style="color: #94a3b8; font-size: 0.85rem; margin-top: 0.5rem;">Random Forest Classifier</p>
+                        <div style="margin-top: 2rem; display: flex; justify-content: space-around;">
+                            <div>
+                                <div style="font-weight: 600;">884k</div>
+                                <div style="font-size: 0.7rem; color: #94a3b8;">Samples</div>
+                            </div>
+                            <div>
+                                <div style="font-weight: 600;">7.2mb</div>
+                                <div style="font-size: 0.7rem; color: #94a3b8;">Size</div>
+                            </div>
+                        </div>
+                        <button
+                            style="margin-top: 2rem; width: 100%; padding: 0.8rem; border-radius: 0.8rem; background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); cursor: pointer;">Manage
+                            Models</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h3>Global Threat Distribution (Weekly)</h3>
+                <div style="height: 300px; margin-top: 1.5rem;">
+                    <canvas id="overviewChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const ctx = document.getElementById('overviewChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'Anomalies Detected',
+                    data: [12, 19, 3, 5, 2, 3, 7],
+                    borderColor: '#6366f1',
+                    backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: '#94a3b8' } },
+                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } }
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

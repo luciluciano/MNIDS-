@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MNIDS - File Upload</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #a855f7;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --bg: #030712;
+            --card-bg: rgba(17, 24, 39, 0.7);
+            --text: #f8fafc;
+            --sidebar-width: 260px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Outfit', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            background-image:
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.15) 0, transparent 50%);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Sidebar Stylings */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: rgba(3, 7, 18, 0.95);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            height: 100vh;
+            position: fixed;
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            z-index: 100;
+        }
+
+        .sidebar-brand {
+            font-size: 1.5rem;
+            font-weight: 600;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+
+        .nav-menu {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.75rem;
+            color: #94a3b8;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--text);
+        }
+
+        .nav-link.active {
+            border-left: 3px solid var(--primary);
+            background: linear-gradient(to right, rgba(99, 102, 241, 0.1), transparent);
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            flex: 1;
+            padding: 2.5rem;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            margin-bottom: 3rem;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.025em;
+        }
+
+        header p {
+            color: #94a3b8;
+            font-size: 1.1rem;
+        }
+
+        /* Upload Card */
+        .upload-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 3.5rem;
+            border-radius: 2rem;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .drop-zone {
+            display: block;
+            border: 2px dashed rgba(99, 102, 241, 0.2);
+            padding: 4rem 2rem;
+            border-radius: 1.5rem;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-bottom: 2.5rem;
+            background: rgba(15, 23, 42, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .drop-zone:hover {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.05);
+            transform: scale(1.01);
+        }
+
+        .drop-zone.drag-over {
+            border-color: var(--secondary);
+            background: rgba(168, 85, 247, 0.1);
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            display: inline-block;
+            transition: transform 0.3s;
+        }
+
+        .drop-zone:hover .upload-icon {
+            transform: translateY(-10px) scale(1.1);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .btn-upload {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 1.25rem 3rem;
+            border-radius: 1rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-upload:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 35px -10px rgba(99, 102, 241, 0.5);
+        }
+
+        /* Message Styles */
+        .msg {
+            padding: 1.25rem 1.5rem;
+            border-radius: 1rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .success {
+            background: rgba(16, 185, 129, 0.1);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .error {
+            background: rgba(239, 68, 68, 0.1);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .file-info {
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="sidebar">
+        <div class="sidebar-brand">M-NIDS Admin</div>
+        <ul class="nav-menu">
+            <li><a href="/admin/overview" class="nav-link">Overview</a></li>
+            <li><a href="/admin" class="nav-link">Dashboard</a></li>
+            <li><a href="/admin/analytics" class="nav-link">Analytics</a></li>
+            <li><a href="/admin/users" class="nav-link">User Management</a></li>
+            <li><a href="/logout" class="nav-link" style="margin-top: auto; color: var(--danger);">Logout</a></li>
+        </ul>
+    </div>
+
+    <main class="main-content">
+        <div class="container">
+            <header>
+                <h1>Upload Traffic Logs</h1>
+                <p>Ingest network captures for offline ML analysis and feature extraction.</p>
+            </header>
+
+            {% if success %}
+            <div class="msg success">
+                <span>✅</span>
+                <span>{{ success }}</span>
+            </div>
+            {% endif %}
+            {% if error %}
+            <div class="msg error">
+                <span>⚠️</span>
+                <span>{{ error }}</span>
+            </div>
+            {% endif %}
+
+            <div class="upload-card">
+                <form action="/admin/upload" method="POST" enctype="multipart/form-data">
+                    <label for="file-upload" class="drop-zone" id="drop-zone">
+                        <span class="upload-icon">📂</span>
+                        <h3 id="file-name" style="margin-bottom: 0.5rem;">Click or drag logs here</h3>
+                        <p style="color: #64748b;">Supports CSV, PCAP, and PCAPNG</p>
+                        <div id="selected-file" class="file-info" style="display: none;"></div>
+                        <input type="file" name="file" id="file-upload" onchange="handleFileSelect()">
+                    </label>
+                    <button type="submit" class="btn-upload">Start Deep Ingestion</button>
+                </form>
+            </div>
+
+            <div style="margin-top: 3rem; text-align: center;">
+                <p style="color: #475569; font-size: 0.9rem;">
+                    Uploads are processed by the ML Engine to extract features like packet density, inter-arrival times,
+                    and protocol flags.
+                </p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function handleFileSelect() {
+            const input = document.getElementById('file-upload');
+            const nameH3 = document.getElementById('file-name');
+            const fileInfo = document.getElementById('selected-file');
+
+            if (input.files.length > 0) {
+                const file = input.files[0];
+                nameH3.innerText = "File Selected";
+                fileInfo.style.display = "block";
+                fileInfo.innerHTML = `<strong>${file.name}</strong> (${(file.size / 1024).toFixed(1)} KB)`;
+                document.getElementById('drop-zone').style.borderColor = "var(--success)";
+                document.getElementById('drop-zone').style.background = "rgba(16, 185, 129, 0.05)";
+            }
+        }
+
+        // Drag and drop visual feedback
+        const dropZone = document.getElementById('drop-zone');
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, e => {
+                e.preventDefault();
+                dropZone.classList.add('drag-over');
+            }, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, e => {
+                e.preventDefault();
+                dropZone.classList.remove('drag-over');
+            }, false);
+        });
+    </script>
+</body>
+
+</html>
